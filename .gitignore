@@ -1,0 +1,6 @@
+# Vim
+*.sw?
+
+# Temporary folders
+.protoc
+.tmp

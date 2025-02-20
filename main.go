@@ -50,6 +50,55 @@ var (
 	AuthKey string
 )
 
+const (
+	FunctionName = "get_current_temperature"
+)
+
+type Model int
+
+const (
+	ModelGigaUndefined Model = iota
+	ModelGigaChat
+	ModelGigaChatMax
+	ModelGigaChatPlus
+	ModelGigaChatPro
+)
+
+func (m Model) String() string {
+	return [...]string{"undefined", "GigaChat", "GigaChat-Max", "GigaChat-Plus", "GigaChat-Pro"}[m]
+}
+
+type Role int
+
+const (
+	RoleUndifined Role = iota
+	RoleNone
+	RoleSystem
+	RoleUser
+	RoleAssistent
+	RoleFunction
+)
+
+func (r Role) String() string {
+	return [...]string{"undefined", "", "system", "user", "assistent", "function"}[r]
+}
+
+type FinishReason int
+
+const (
+	FinishReasonUndefined FinishReason = iota
+	FinishReasonNone
+	FinishReasonStop
+	FinishReasonLength
+	FinishReasonFunctionCall
+	FinishReasonBlacklist
+	FinishReasonError
+)
+
+func (r FinishReason) String() string {
+	return [...]string{"undefined", "", "stop", "length", "function_call", "blacklist", "error"}[r]
+}
+
 func main() {
 	var ok bool
 	if RqUID, ok = os.LookupEnv(ENV_RQ_UUID); !ok {
@@ -229,14 +278,17 @@ func prepareRequest() *pb.ChatRequest {
 }
 
 func grpcDialOptions() ([]grpc.DialOption, error) {
+	const dir = "certs/"
+
 	certPool := x509.NewCertPool()
 
-	for _, f := range [...]string{
-		"russian_trusted_root_ca_pem.crt",
-		"russian_trusted_sub_ca_2024_pem.crt",
-		"russian_trusted_sub_ca_pem.crt",
-	} {
-		b, err := os.ReadFile("certs/" + f)
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, f := range files {
+		b, err := os.ReadFile(dir + f.Name())
 		if err != nil {
 			return nil, err
 		}
@@ -292,53 +344,4 @@ func checkErr(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-const (
-	FunctionName = "get_current_temperature"
-)
-
-type Model int
-
-const (
-	ModelGigaUndefined Model = iota
-	ModelGigaChat
-	ModelGigaChatMax
-	ModelGigaChatPlus
-	ModelGigaChatPro
-)
-
-func (m Model) String() string {
-	return [...]string{"undefined", "GigaChat", "GigaChat-Max", "GigaChat-Plus", "GigaChat-Pro"}[m]
-}
-
-type Role int
-
-const (
-	RoleUndifined Role = iota
-	RoleNone
-	RoleSystem
-	RoleUser
-	RoleAssistent
-	RoleFunction
-)
-
-func (r Role) String() string {
-	return [...]string{"undefined", "", "system", "user", "assistent", "function"}[r]
-}
-
-type FinishReason int
-
-const (
-	FinishReasonUndefined FinishReason = iota
-	FinishReasonNone
-	FinishReasonStop
-	FinishReasonLength
-	FinishReasonFunctionCall
-	FinishReasonBlacklist
-	FinishReasonError
-)
-
-func (r FinishReason) String() string {
-	return [...]string{"undefined", "", "stop", "length", "function_call", "blacklist", "error"}[r]
 }

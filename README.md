@@ -2,7 +2,7 @@
 
 [GigaChat gRPC API documentation](https://developers.sber.ru/docs/ru/gigachat/api/reference-grpc)
 
-## Build
+## Prepare
 
 ```shell
 $ make deps stubs
